@@ -46,7 +46,7 @@
 
 Плохо:
 
-```
+```php
 public function getFullNameAttribute()
 {
     if (auth()->user() && auth()->user()->hasRole('client') && auth()->user()->isVerified()) {
@@ -59,7 +59,7 @@ public function getFullNameAttribute()
 
 Хорошо:
 
-```
+```php
 public function getFullNameAttribute()
 {
     return $this->isVerifiedClient() ? $this->getFullNameLong() : $this->getFullNameShort();
@@ -89,7 +89,7 @@ public function getFullNameShort()
 
 Плохо:
 
-```
+```php
 public function index()
 {
     $clients = Client::verified()
@@ -104,7 +104,7 @@ public function index()
 
 Хорошо:
 
-```
+```php
 public function index()
 {
     return view('index', ['clients' => $this->client->getWithNewOrders()]);
@@ -131,7 +131,7 @@ class Client extends Model
 
 Плохо:
 
-```
+```php
 public function store(Request $request)
 {
     $request->validate([
@@ -146,7 +146,7 @@ public function store(Request $request)
 
 Хорошо:
 
-```
+```php
 public function store(PostRequest $request)
 {    
     ....
@@ -173,7 +173,7 @@ class PostRequest extends Request
 
 Плохо:
 
-```
+```php
 public function store(Request $request)
 {
     if ($request->hasFile('image')) {
@@ -186,7 +186,7 @@ public function store(Request $request)
 
 Хорошо:
 
-```
+```php
 public function store(Request $request)
 {
     $this->articleService->handleUploadedImage($request->file('image'));
@@ -213,7 +213,7 @@ class ArticleService
 
 Плохо:
 
-```
+```php
 public function getActive()
 {
     return $this->where('verified', 1)->whereNotNull('deleted_at')->get();
@@ -229,7 +229,7 @@ public function getArticles()
 
 Хорошо:
 
-```
+```php
 public function scopeActive($q)
 {
     return $q->where('verified', 1)->whereNotNull('deleted_at');
@@ -256,7 +256,7 @@ Eloquent позволяет писать максимально читаемый
 
 Плохо:
 
-```
+```php
 SELECT *
 FROM `articles`
 WHERE EXISTS (SELECT *
@@ -273,7 +273,7 @@ ORDER BY `created_at` DESC
 
 Хорошо:
 
-```
+```php
 Article::has('user.profile')->verified()->latest()->get();
 ```
 
@@ -283,7 +283,7 @@ Article::has('user.profile')->verified()->latest()->get();
 
 Плохо:
 
-```
+```php
 $article = new Article;
 $article->title = $request->title;
 $article->content = $request->content;
@@ -295,8 +295,8 @@ $article->save();
 
 Хорошо:
 
-```
-$category->article()->create($request->all());
+```php
+$category->article()->create($request->validated());
 ```
 
 [🔝 Наверх](#Содержание)
@@ -305,7 +305,7 @@ $category->article()->create($request->all());
 
 Плохо (будет выполнен 101 запрос в БД для 100 пользователей):
 
-```
+```php
 @foreach (User::all() as $user)
     {{ $user->profile->name }}
 @endforeach
@@ -313,7 +313,7 @@ $category->article()->create($request->all());
 
 Хорошо (будет выполнено 2 запроса в БД для 100 пользователей):
 
-```
+```php
 $users = User::with('profile')->get();
 
 ...
@@ -329,20 +329,20 @@ $users = User::with('profile')->get();
 
 Плохо:
 
-```
+```php
 if (count((array) $builder->getQuery()->joins) > 0)
 ```
 
 Лучше:
 
-```
+```php
 // Determine if there are any joins.
 if (count((array) $builder->getQuery()->joins) > 0)
 ```
 
 Хорошо:
 
-```
+```php
 if ($this->hasJoins())
 ```
 
@@ -352,23 +352,23 @@ if ($this->hasJoins())
 
 Плохо:
 
-```
+```php
 let article = `{{ json_encode($article) }}`;
 ```
 
 Лучше:
 
-```
-<input id="article" type="hidden" value="{{ json_encode($article) }}">
+```php
+<input id="article" type="hidden" value='@json($article)'>
 
 Или
 
-<button class="js-fav-article" data-article="{{ json_encode($article) }}">{{ $article->name }}<button>
+<button class="js-fav-article" data-article='@json($article)'>{{ $article->name }}<button>
 ```
 
 В Javascript файле:
 
-```
+```php
 let article = $('#article').val();
 ```
 
@@ -382,7 +382,7 @@ let article = $('#article').val();
 
 Плохо:
 
-```
+```php
 public function isNormal()
 {
     return $article->type === 'normal';
@@ -393,7 +393,7 @@ return back()->with('message', 'Ваша статья была успешно д
 
 Хорошо:
 
-```
+```php
 public function isNormal()
 {
     return $article->type === Article::TYPE_NORMAL;
@@ -460,7 +460,7 @@ Pivot таблица | имена моделей в алфавитном пор�
 Коллекция | описательное, мн. ч. | $activeUsers = User::active()->get() | ~~$active, $data~~
 Объект | описательное, ед. ч. | $activeUser = User::active()->first() | ~~$users, $obj~~
 Индексы в конфиге и языковых файлах | snake_case | articles_enabled | ~~ArticlesEnabled; articles-enabled~~
-Представление | snake_case | show_filtered.blade.php | ~~showFiltered.blade.php, show-filtered.blade.php~~
+Представление | kebab-case | show-filtered.blade.php | ~~showFiltered.blade.php, show_filtered.blade.php~~
 Конфигурационный файл | snake_case | google_calendar.php | ~~googleCalendar.php, google-calendar.php~~
 Контракт (интерфейс) | прилагательное или существительное | Authenticatable | ~~AuthenticationInterface, IAuthentication~~
 Трейт | прилагательное | Notifiable | ~~NotificationTrait~~
@@ -471,14 +471,14 @@ Pivot таблица | имена моделей в алфавитном пор�
 
 Плохо:
 
-```
+```php
 $request->session()->get('cart');
 $request->input('name');
 ```
 
 Хорошо:
 
-```
+```php
 session('cart');
 $request->name;
 ```
@@ -492,7 +492,7 @@ $request->name;
 `Session::put('cart', $data)` | `session(['cart' => $data])`
 `$request->input('name'), Request::get('name')` | `$request->name, request('name')`
 `return Redirect::back()` | `return back()`
-`is_null($object->relation) ? $object->relation->id : null }` | `optional($object->relation)->id`
+`is_null($object->relation) ? null : $object->relation->id` | `optional($object->relation)->id`
 `return view('index')->with('title', $title)->with('client', $client)` | `return view('index', compact('title', 'client'))`
 `$request->has('value') ? $request->value : 'default';` | `$request->get('value', 'default')`
 `Carbon::now(), Carbon::today()` | `now(), today()`
@@ -512,14 +512,14 @@ $request->name;
 
 Плохо:
 
-```
+```php
 $user = new User;
-$user->create($request->all());
+$user->create($request->validated());
 ```
 
 Хорошо:
 
-```
+```php
 public function __construct(User $user)
 {
     $this->user = $user;
@@ -527,7 +527,7 @@ public function __construct(User $user)
 
 ....
 
-$this->user->create($request->all());
+$this->user->create($request->validated());
 ```
 
 [🔝 Наверх](#Содержание)
@@ -538,13 +538,13 @@ $this->user->create($request->all());
 
 Плохо:
 
-```
+```php
 $apiKey = env('API_KEY');
 ```
 
 Хорошо:
 
-```
+```php
 // config/api.php
 'key' => env('API_KEY'),
 
@@ -558,16 +558,16 @@ $apiKey = config('api.key');
 
 Плохо:
 
-```
+```php
 {{ Carbon::createFromFormat('Y-d-m H-i', $object->ordered_at)->toDateString() }}
 {{ Carbon::createFromFormat('Y-d-m H-i', $object->ordered_at)->format('m-d') }}
 ```
 
 Хорошо:
 
-```
+```php
 // Модель
-protected $dates = ['ordered_at', 'created_at', 'updated_at']
+protected $dates = ['ordered_at', 'created_at', 'updated_at'];
 // Читатель (accessor)
 public function getSomeDateAttribute($date)
 {
